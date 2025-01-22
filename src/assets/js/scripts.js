@@ -30,14 +30,14 @@ window.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('scroll', navbarShrink);
 
     // Activate Bootstrap scrollspy on the main nav element
-    const mainNav = document.body.querySelector('#mainNav');
-    if (mainNav) {
-        // eslint-disable-next-line no-undef
-        new bootstrap.ScrollSpy(document.body, {
-            target: '#mainNav',
-            rootMargin: '0px 0px -40%',
-        });
-    }
+    // const mainNav = document.body.querySelector('#mainNav');
+    // if (mainNav) {
+    //     // eslint-disable-next-line no-undef
+    //     new bootstrap.ScrollSpy(document.body, {
+    //         target: '#mainNav',
+    //         rootMargin: '0px 0px -40%',
+    //     });
+    // }
 
     // Collapse responsive navbar when toggler is visible
     const navbarToggler = document.body.querySelector('.navbar-toggler');
@@ -54,8 +54,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Activate SimpleLightbox plugin for portfolio items
     // eslint-disable-next-line no-undef
-    new SimpleLightbox({
-        elements: '#portfolio a.portfolio-box'
-    });
+    // new SimpleLightbox({
+    //     elements: '#portfolio a.portfolio-box'
+    // });
 
 });

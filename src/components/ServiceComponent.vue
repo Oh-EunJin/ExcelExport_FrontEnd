@@ -1,8 +1,13 @@
 <template>
   <section class="page-section" id="services">
     <div class="container px-4 px-lg-5">
-      <h2 class="text-center mt-0">Service</h2>
+      <h2 class="text-center mt-0">사용해보기</h2>
       <hr class="divider" />
+
+      <div class="text-center">
+        <button class="btn btn-primary2 btn-xl" type="button" v-on:click="downBtn">Download</button>
+      </div>
+
       <div class="row gx-4 gx-lg-5">
         <div class="col-lg-3 col-md-6 text-center">
           <div class="mt-5">
@@ -46,7 +51,19 @@ export default {
     };
   },
   methods: {
-    
+    downBtn() {
+      this.$axios.get("/api/excel", { responseType: 'blob' }).then((res) => {
+        const url = window.URL.createObjectURL(
+          new Blob([res.data], 
+          { type: res.headers["content-type"] })
+        );
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", "생성하고 싶은 파일명" + ".xlsx");
+        document.body.appendChild(link);
+        link.click();
+      });
+    }
   },
   mounted() {
 

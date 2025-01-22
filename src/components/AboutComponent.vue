@@ -1,6 +1,5 @@
 <template>
   <div id="about">
-
     <section class="page-section bg-primary">
       <div class="container px-4 px-lg-5">
         <div class="row gx-4 gx-lg-5 justify-content-center">
@@ -14,7 +13,6 @@
 
             <div class="container px-4 px-lg-8" id="howToService">
               <h2 class="text-center mt-0">서비스 이용방법</h2>
-              
               <div class="row gx-4 gx-lg-5">
                 <div class="col-lg-6 col-md-6 text-center">
                   <div class="mt-5">
@@ -76,7 +74,7 @@ export default {
 
 <style scoped>
 #howToService {
-  margin-top: 15%;
+  margin-top: 10%;
 }
 
 .startBtn {
