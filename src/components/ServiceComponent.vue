@@ -8,7 +8,7 @@
         <div class="text-left">
           <h3 class="h4 mb-2">최상위 폴더 경로</h3>
           <div class="mt-3">
-            <label> 절대 경로 : <input type='text' v-model="dirPath" ref="dirPathCursor" style="width: 30rem;" /></label>
+            <label> 절대 경로 : <input type='text' v-model="dirPath" ref="dirPathCursor" style="min-width: 30rem;" /></label>
             <p style="margin-top: 0.5%;">* 파일 정보를 알고 싶은 최상위 폴더의 절대 경로를 입력해주세요. <br />
               ex) D:\Project\test
             </p>
@@ -20,7 +20,7 @@
 
       <div class="row gx-4 gx-lg-5">
         <div class="col-lg-6 col-md-6 text-left">
-          <h3 class="h4 mb-2">검색조건 (확장자)</h3>
+          <h3 class="h4 mb-2">확장자</h3>
           <div class="mt-3 checkDiv" id="extCheckBox">
             <input type="checkbox" id="extJava" name="extension" value="Java" />
             <label for="extJava"> java </label>
@@ -44,13 +44,15 @@
         </div>
 
         <div class="col-lg-6 col-md-6 text-left">
-          <h3 class="h4 mb-2">검색조건 (날짜)</h3>
-          <div class="mt-3 checkDiv">
+          <h3 class="h4 mb-2">날짜</h3>
+          <div class="mt-3">
             <!-- <label for="date"> 날짜 </label> -->
             <!-- <input type="date" id="date" :max="maxDate" /> -->
-
-            <Datepicker v-model="pickDate" :locale="locale" :weekStartsOn="0" :disabledDates="{ predicate: isTodayOver }" placeholder="날짜를 선택하세요." :clearable="true" >
+            
+            <Datepicker class="datepicker" v-model="pickDate" :locale="locale" :weekStartsOn="0"
+                        :disabledDates="{ predicate: isTodayOver }" placeholder="날짜를 선택하세요." :clearable="true" >
               <template v-slot:clear="{ onClear }">
+                <button class="openBtn" type="button" @click="openCalendar">🗓️</button>
                 <button class="clearBtn" type="button" @click="onClear">x</button>
               </template>
             </Datepicker>
@@ -117,6 +119,8 @@
       </div>
 
     </div>
+
+    <AlertComponent v-if="isOpenAlert" :message="message" :isOpenAlert="isOpenAlert" :icon="iconState" />
 </section>
 </template>
 
@@ -125,41 +129,45 @@ import { ref, reactive } from 'vue';
 import Datepicker from 'vue3-datepicker';
 import { ko } from 'date-fns/locale';
 
+import { mapState } from 'vuex';
+
 export default {
   name: 'ServiceComponent',
   components: {
     Datepicker,
   },
-  setup() {
-    const pickDate = ref();
-    const locale = reactive(ko); // 한글 달력 (기본 값은 영어)
-
-    const isTodayOver = (date) => {
-      return date > new Date(new Date().setDate(new Date().getDate()-1));
-    };
-
-    return {
-      pickDate,
-      locale,
-      isTodayOver
-    }
-  },
   data() {
     return {
       dirPath: '',
       etcList: '',
+      pickDate: ref(),
+      locale: reactive(ko),
+
+      sendData: {},
     };
   },
   methods: {
     // TO-BE : custom alert도 해보기......
+    // 달력 선택 호출
+    openCalendar() {
+      document.querySelector('.datepicker').focus();
+    },
+    // 어제 날짜까지 선택 가능
+    isTodayOver(date) {
+      return date > new Date(new Date().setDate(new Date().getDate()-1));
+    },
     // 유효성 체크
     checkValidation() {
         // 절대 경로 유효성 체크
         if(this.dirPath.trim().length < 1) {
           this.dirPath = this.dirPath.trim();
-          alert('폴더의 경로를 입력해 주세요.');
+          //alert('폴더 경로를 입력해 주세요.');
+          //this.message = '폴더 경로를 입력해 주세요.';
+          this.openAlert('폴더 경로를 입력해 주세요.', 'warn');
           this.$refs.dirPathCursor.focus();
           return false;
+        } else {
+          this.sendData.dirPath = this.dirPath;
         }
 
         // 검색조건 확장자 유효성 체크
@@ -167,64 +175,84 @@ export default {
         var extCnt = checkBoxes.length;
         // 최소 1개 선택 체크
         if(extCnt < 1) {
-          alert('확장자를 최소 1개 선택해 주세요.');
+          //alert('확장자를 최소 1개 선택해 주세요.');
+          //this.message = '확장자를 최소 1개 선택해 주세요.';
+          this.openAlert('확장자를 최소 1개 선택해 주세요.', 'warn');
           return false;
         }
 
         // 기타 선택 시 input 값 유효성 체크
         checkBoxes.forEach(item => {
           if(item.value == 'Etc' && this.etcList.trim().length < 1) {
-            alert('원하는 확장자를 입력해 주세요.');
+            //alert('확장자를 입력해 주세요.');
+            //this.message = '확장자를 입력해 주세요.';
+            this.openAlert('확장자를 입력해 주세요.', 'warn');
             this.etcList = this.etcList.trim();
             this.$refs.etcListCursor.focus();
             return false;
+          } else {
+            // check된 item 리스트 저장장
+            this.sendData.etcList = this.etcList;
           }
         });
 
+        // 날짜 선택 시 값 저장
+        if(this.pickDate != null) {
+          this.sendData.pickDate = this.pickDate.toISOString().split("T")[0];
+        }
+
         return true;
+    },
+    openAlert(msg, icon) {
+      document.body.style.overflow = "hidden";
+      this.$store.dispatch("openAlertComponent", { msg: msg, icon: icon });
     },
     // 엑셀 다운로드
     downExcel() {
       // 일단 유효성 체크 한 후 엑셀 다운로드 api 호출
       if(this.checkValidation()) {
-        // 엑셀 다운로드 api 호출 전에 checkbox의 disabled 해제해야 함!!
-
-        // this.$axios.get("/api/excel",/* { params: {
-  
-        // } },*/ { responseType: 'blob' }).then((res) => {
-        //   const url = window.URL.createObjectURL(
-        //     new Blob([res.data], 
-        //     { type: res.headers["content-type"] })
-        //   );
-        //   const link = document.createElement("a");
-        //   link.href = url;
-        //   link.setAttribute("download", "생성하고 싶은 파일명" + ".xlsx");
-        //   document.body.appendChild(link);
-        //   link.click();
-        // });
+        // 엑셀 다운로드 api 호출 전에 checkbox의 disabled 해제해야 함!! -> 아니지 어차피 기본값이니까 걍 sendData에 넣어서 보내면 될듯?
+        console.log(this.sendData);
+        this.$alert;
+        /*
+        this.$axios.get("/api/excel",{ params: this.sendData, responseType: 'blob' }).then((res) => {
+          const url = window.URL.createObjectURL(
+            new Blob([res.data], 
+            { type: res.headers["content-type"] })
+          );
+          const link = document.createElement("a");
+          link.href = url;
+          link.setAttribute("download", "생성하고 싶은 파일명" + ".xlsx");
+          document.body.appendChild(link);
+          link.click();
+        });
+        */
       }
 
     }
   },
-  created() {
-
+  watch: {
+    pickDate: function() {
+      document.querySelector('.datepicker').blur();
+    }
   },
-  mounted() {
+  computed: {
+    ...mapState(["isOpenAlert", "message", "iconState"]),
 
+    /**
+    * input 에서 datepicker로 수정하여 해당 부분 주석 처리
+    // 오늘 날짜 이후는 비활성화 처리
+    maxDate() {
+      const today = new Date(Date.now() - new Date().getTimezoneOffset()*60000);
+      return new Date(today.setDate(today.getDate()-1)).toISOString().split("T")[0];
+    }
+    */
   },
-  // input 에서 datepicker로 수정하여 해당 부분 주석 처리
-  // computed: {
-  //   // 오늘 날짜 이후는 비활성화 처리
-  //   maxDate() {
-  //     const today = new Date(Date.now() - new Date().getTimezoneOffset()*60000);
-  //     return new Date(today.setDate(today.getDate()-1)).toISOString().split("T")[0];
-  //   }
-  // },
 }
 </script>
 
 <style scoped>
-label, #date, input[type="checkbox"] {
+label, input[type="checkbox"] {
   cursor: pointer;
 }
 .checkDiv > input {
@@ -237,11 +265,18 @@ label, #date, input[type="checkbox"] {
 input[type="text"] {
   padding-left: 5px;
 }
+
+.openBtn {
+  background-color:transparent;
+  border: none;
+  margin-left: -9rem;
+}
 .clearBtn {
   background-color:transparent;
   border: none;
   color: red;
-  margin-left: -2%;
+  margin-left: 6.3rem;
+  /* margin-left: -2%; */
   /* left: -4.5%; */
 }
 
