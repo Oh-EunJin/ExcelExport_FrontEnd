@@ -24,8 +24,9 @@ export default {
   },
   methods: {
     closeAlert() {
-      this.$store.dispatch("closeAlertComponent");
       document.body.style.overflow = "auto";
+      document.body.style.paddingRight = "";
+      this.$store.dispatch("closeAlertComponent");
     },
   },
 }

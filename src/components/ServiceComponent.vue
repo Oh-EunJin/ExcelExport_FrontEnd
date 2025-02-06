@@ -22,24 +22,24 @@
         <div class="col-lg-6 col-md-6 text-left">
           <h3 class="h4 mb-2">확장자</h3>
           <div class="mt-3 checkDiv" id="extCheckBox">
-            <input type="checkbox" id="extJava" name="extension" value="Java" />
+            <input type="checkbox" id="extJava" name="extension" value="java" />
             <label for="extJava"> java </label>
             
-            <input type="checkbox" id="extJsp" name="extension" value="Jsp" />
+            <input type="checkbox" id="extJsp" name="extension" value="jsp" />
             <label for="extJsp"> jsp </label>
 
-            <input type="checkbox" id="extJs" name="extension" value="Js" />
+            <input type="checkbox" id="extJs" name="extension" value="js" />
             <label for="extJs"> js </label>
 
-            <input type="checkbox" id="extVue" name="extension" value="Vue" />
+            <input type="checkbox" id="extVue" name="extension" value="vue" />
             <label for="extVue"> vue </label>
 
-            <input type="checkbox" id="extEtc" name="extension" value="Etc" />
+            <input type="checkbox" id="extEtc" name="extension" value="etc" />
             <label for="extEtc"> 기타 <input type="text" v-model="etcList" ref="etcListCursor" /></label>
           </div>
           <div class="mt-2">
-            <p>* 기타 선택 시 검색하고자 하는 확장자를 입력해 주시고, 여러 개인 경우 아래 예시처럼 구분자(@)를 포함하여 입력해 주세요. <br />
-                ex) css@xml@html</p>
+            <p>* 기타 선택 시 검색하고자 하는 확장자를 입력해 주시고, 여러 개인 경우 아래 예시처럼 구분자(/)를 포함하여 입력해 주세요. <br />
+                ex) css/xml/html</p>
           </div>
         </div>
 
@@ -158,64 +158,81 @@ export default {
     },
     // 유효성 체크
     checkValidation() {
-        // 절대 경로 유효성 체크
-        if(this.dirPath.trim().length < 1) {
-          this.dirPath = this.dirPath.trim();
-          //alert('폴더 경로를 입력해 주세요.');
-          //this.message = '폴더 경로를 입력해 주세요.';
-          this.openAlert('폴더 경로를 입력해 주세요.', 'warn');
-          this.$refs.dirPathCursor.focus();
-          return false;
+      this.sendData = {};
+
+      // 절대 경로 유효성 체크
+      if(this.dirPath.trim().length < 1) {
+        this.dirPath = this.dirPath.trim();
+        this.openAlert('폴더 경로를 입력해 주세요.', 'warn');
+        // alert('폴더 경로를 입력해 주세요.')
+        this.$refs.dirPathCursor.focus();
+        return false;
+      } else {
+        this.sendData.dirPath = this.dirPath;
+      }
+
+      // 확장자 유효성 체크
+      const checkBoxes = document.querySelectorAll('input[name="extension"]:checked');
+      var extCnt = checkBoxes.length;
+      // 최소 1개 선택 체크
+      if(extCnt < 1) {
+        this.openAlert('확장자를 최소 1개 선택해 주세요.', 'warn');
+        return false;
+      }
+
+      // 기타 선택 시 input 값 유효성 체크
+      checkBoxes.forEach(item => {
+        if(item.value != 'etc') {
+          if(this.sendData.etcList) {
+            this.sendData.etcList = this.sendData.etcList + "/" + item.value;
+          } else {
+            this.sendData.etcList = item.value;
+          }
         } else {
-          this.sendData.dirPath = this.dirPath;
-        }
-
-        // 검색조건 확장자 유효성 체크
-        const checkBoxes = document.querySelectorAll('input[name="extension"]:checked');
-        var extCnt = checkBoxes.length;
-        // 최소 1개 선택 체크
-        if(extCnt < 1) {
-          //alert('확장자를 최소 1개 선택해 주세요.');
-          //this.message = '확장자를 최소 1개 선택해 주세요.';
-          this.openAlert('확장자를 최소 1개 선택해 주세요.', 'warn');
-          return false;
-        }
-
-        // 기타 선택 시 input 값 유효성 체크
-        checkBoxes.forEach(item => {
-          if(item.value == 'Etc' && this.etcList.trim().length < 1) {
-            //alert('확장자를 입력해 주세요.');
-            //this.message = '확장자를 입력해 주세요.';
+          if(this.etcList.trim().length < 1) {
             this.openAlert('확장자를 입력해 주세요.', 'warn');
             this.etcList = this.etcList.trim();
             this.$refs.etcListCursor.focus();
             return false;
           } else {
-            // check된 item 리스트 저장장
-            this.sendData.etcList = this.etcList;
+            // check된 item 리스트 저장
+            if(this.sendData.etcList) {
+              this.sendData.etcList = this.sendData.etcList + "/" + this.etcList;
+            } else {
+              this.sendData.etcList = this.etcList;
+            }
           }
-        });
-
-        // 날짜 선택 시 값 저장
-        if(this.pickDate != null) {
-          this.sendData.pickDate = this.pickDate.toISOString().split("T")[0];
         }
+      });
 
-        return true;
+      // 날짜 선택 시 값 저장
+      if(this.pickDate) {
+        this.sendData.pickDate = this.pickDate.toISOString().split("T")[0];
+      }
+
+      // 엑셀 Header 값 저장
+      const headerChkList = document.querySelectorAll('input[name="headerName"]:checked');
+      headerChkList.forEach(item => {
+        if(this.sendData.headerList) {
+          this.sendData.headerList = this.sendData.headerList + "/" + item.value;
+        } else {
+          this.sendData.headerList = item.value;
+        }
+      })
+
+      return true;
     },
     openAlert(msg, icon) {
+      const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
       document.body.style.overflow = "hidden";
+      document.body.style.paddingRight = `${scrollBarWidth}px`;
       this.$store.dispatch("openAlertComponent", { msg: msg, icon: icon });
     },
     // 엑셀 다운로드
     downExcel() {
       // 일단 유효성 체크 한 후 엑셀 다운로드 api 호출
       if(this.checkValidation()) {
-        // 엑셀 다운로드 api 호출 전에 checkbox의 disabled 해제해야 함!! -> 아니지 어차피 기본값이니까 걍 sendData에 넣어서 보내면 될듯?
-        console.log(this.sendData);
-        this.$alert;
-        /*
-        this.$axios.get("/api/excel",{ params: this.sendData, responseType: 'blob' }).then((res) => {
+        this.$axios.get("/api/excel2",{ params: this.sendData, responseType: 'blob' }).then((res) => {
           const url = window.URL.createObjectURL(
             new Blob([res.data], 
             { type: res.headers["content-type"] })
@@ -225,13 +242,21 @@ export default {
           link.setAttribute("download", "생성하고 싶은 파일명" + ".xlsx");
           document.body.appendChild(link);
           link.click();
+        }).catch((err) => {
+          console.log(err)
         });
-        */
       }
 
     }
   },
   watch: {
+    etcList: function() {
+      if(this.etcList.trim().length > 0) {
+        document.querySelector('#extEtc').checked = true;
+      } else {
+        document.querySelector('#extEtc').checked = false;
+      }
+    },
     pickDate: function() {
       document.querySelector('.datepicker').blur();
     }
@@ -276,8 +301,6 @@ input[type="text"] {
   border: none;
   color: red;
   margin-left: 6.3rem;
-  /* margin-left: -2%; */
-  /* left: -4.5%; */
 }
 
 input[type="checkbox"] {
@@ -308,32 +331,5 @@ input[type="checkbox"]:checked::after {
 input[type="checkbox"]:disabled, input[type="checkbox"]:disabled + label {
   cursor: default;
 }
-/* input[type="checkbox"] {
-  accent-color: purple;
-}
 
-input:disabled {
-  background-color: rgb(255, 0, 0);
-  color: linen;
-  opacity: 1;
-} */
-
-/*
-input[type="checkbox"] + label:before {
-    content: '';
-    background: linear-gradient(to bottom, #e6e6e6 0px, #fff 100%) repeat scroll 0 0 rgba(0, 0, 0, 0);
-    border-color: #3d9000;
-    color: #96be0a;
-    font-size: 38px;
-    line-height: 35px;
-    text-align: center;
-}
-input[type="checkbox"]:disabled + label:before {
-    border-color: #7b00ff;
-    color: #ff0000;
-    background: yellow;
-}
-  input[type="checkbox"]:checked + label:before {
-    content: '✓';
-} */
 </style>
