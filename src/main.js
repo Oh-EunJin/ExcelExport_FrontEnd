@@ -1,6 +1,7 @@
 import { createApp } from 'vue';
 import App from './App.vue';
 import axios from 'axios';
+// import axios from './plugins/axios'
 import store from './store';
 
 // 부트스트랩

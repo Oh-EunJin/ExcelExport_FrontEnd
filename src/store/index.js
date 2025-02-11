@@ -5,6 +5,8 @@ export default createStore({
         isOpenAlert: false,
         message: '',
         iconState: '',
+
+        loadingStatus: false,
     },
     mutations: {
         openAlertComponent(state, data) {
@@ -17,6 +19,13 @@ export default createStore({
             state.message = '';
             state.iconState = '';
         },
+
+        openLoadingComponent(state) {
+            state.loadingStatus = true;
+        },
+        closeLoadingComponent(state) {
+            state.loadingStatus = false;
+        },
     },
     actions: {
         openAlertComponent({ commit }, data) {
@@ -24,6 +33,13 @@ export default createStore({
         },
         closeAlertComponent({ commit }) {
             commit("closeAlertComponent");
-        }
+        },
+
+        openLoadingComponent({ commit }) {
+            commit("openLoadingComponent");
+        },
+        closeLoadingComponent({ commit }) {
+            commit("closeLoadingComponent");
+        },
     }
 });

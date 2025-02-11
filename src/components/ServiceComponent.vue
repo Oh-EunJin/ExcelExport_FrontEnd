@@ -115,7 +115,7 @@
       <hr>
 
       <div class="text-center">
-        <button class="btn btn-primary2 btn-xl" type="button" @click="downExcel()">Download</button>
+        <button class="btn btn-primary2 btn-xl" type="button" @click="downExcel()" :disabled="isDownBtnDisabled">Download</button>
       </div>
 
     </div>
@@ -144,6 +144,8 @@ export default {
       locale: reactive(ko),
 
       sendData: {},
+
+      isDownBtnDisabled: false,
     };
   },
   methods: {
@@ -161,13 +163,16 @@ export default {
       this.sendData = {};
 
       // 절대 경로 유효성 체크
-      if(this.dirPath.trim().length < 1) {
-        this.dirPath = this.dirPath.trim();
+      if(this.dirPath.length < 1) {
         this.openAlert('폴더 경로를 입력해 주세요.', 'warn');
         // alert('폴더 경로를 입력해 주세요.')
         this.$refs.dirPathCursor.focus();
         return false;
       } else {
+        const lastVal = this.dirPath[this.dirPath.length - 1];
+        if(lastVal == '\\') {
+          this.dirPath = this.dirPath.substring(0, this.dirPath.length-1);
+        }
         this.sendData.dirPath = this.dirPath;
       }
 
@@ -179,8 +184,8 @@ export default {
         this.openAlert('확장자를 최소 1개 선택해 주세요.', 'warn');
         return false;
       }
-
-      // 기타 선택 시 input 값 유효성 체크
+      // 기타 선택 시 input 값 유효성 체크 및 값 저장
+      let isCheckValidation = true;
       checkBoxes.forEach(item => {
         if(item.value != 'etc') {
           if(this.sendData.etcList) {
@@ -189,11 +194,10 @@ export default {
             this.sendData.etcList = item.value;
           }
         } else {
-          if(this.etcList.trim().length < 1) {
+          if(this.etcList.length < 1) {
             this.openAlert('확장자를 입력해 주세요.', 'warn');
-            this.etcList = this.etcList.trim();
             this.$refs.etcListCursor.focus();
-            return false;
+            isCheckValidation = false;
           } else {
             // check된 item 리스트 저장
             if(this.sendData.etcList) {
@@ -205,20 +209,27 @@ export default {
         }
       });
 
+      if(!isCheckValidation) {
+        return false;
+      }
+
       // 날짜 선택 시 값 저장
       if(this.pickDate) {
-        this.sendData.pickDate = this.pickDate.toISOString().split("T")[0];
+        const year = this.pickDate.getFullYear();
+        const month = String(this.pickDate.getMonth() + 1).padStart(2, "0");
+        const day = String(this.pickDate.getDate()).padStart(2, "0");
+        this.sendData.pickDate = `${year}-${month}-${day}`;
       }
 
       // 엑셀 Header 값 저장
       const headerChkList = document.querySelectorAll('input[name="headerName"]:checked');
       headerChkList.forEach(item => {
         if(this.sendData.headerList) {
-          this.sendData.headerList = this.sendData.headerList + "/" + item.value;
+          this.sendData.headerList = this.sendData.headerList + "/" + item.nextElementSibling.outerText;
         } else {
-          this.sendData.headerList = item.value;
+          this.sendData.headerList = item.nextElementSibling.outerText;
         }
-      })
+      });
 
       return true;
     },
@@ -230,31 +241,56 @@ export default {
     },
     // 엑셀 다운로드
     downExcel() {
-      // 일단 유효성 체크 한 후 엑셀 다운로드 api 호출
       if(this.checkValidation()) {
-        this.$axios.get("/api/excel2",{ params: this.sendData, responseType: 'blob' }).then((res) => {
-          const url = window.URL.createObjectURL(
-            new Blob([res.data], 
-            { type: res.headers["content-type"] })
-          );
-          const link = document.createElement("a");
-          link.href = url;
-          link.setAttribute("download", "생성하고 싶은 파일명" + ".xlsx");
-          document.body.appendChild(link);
-          link.click();
+        console.log(this.sendData)
+        this.isDownBtnDisabled = true;
+
+        this.$axios.get("/api/excel",{ params: this.sendData, responseType: 'blob' }).then(async (res) => {
+          
+          const contentType = res.headers["content-type"];
+          if (contentType.includes("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")) {
+            const url = window.URL.createObjectURL(
+              new Blob([res.data], 
+              { type: res.headers["content-type"] })
+            );
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute("download", "이행목록" + ".xlsx");
+            document.body.appendChild(link);
+            link.click();
+  
+            // 성공 메시지
+            this.openAlert('다운로드 성공', 'success');
+          } else {
+            const errorMessage = await res.data.text();
+            console.log(res.data)
+            console.log(errorMessage)
+            this.openAlert(errorMessage, "warn");
+          }
         }).catch((err) => {
           console.log(err)
+          this.openAlert("다운로드 중 오류 발생", 'warn');
+        }).finally(() => {
+          this.isDownBtnDisabled = false;
         });
       }
-
     }
   },
   watch: {
-    etcList: function() {
-      if(this.etcList.trim().length > 0) {
-        document.querySelector('#extEtc').checked = true;
+    dirPath(newVal) {
+      this.dirPath = newVal.replace(/[\s/]/g, "");    // 특수문자(띄어쓰기, /)입력 방지
+    },
+    etcList(newValue) {
+      const allowedPattern = /^[A-Za-z/]*$/;
+
+      if (!allowedPattern.test(newValue)) {
+        this.etcList = newValue.replace(/[^A-Za-z/]/g, "");
+      }
+
+      if (this.etcList.length > 0) {
+        document.querySelector("#extEtc").checked = true;
       } else {
-        document.querySelector('#extEtc').checked = false;
+        document.querySelector("#extEtc").checked = false;
       }
     },
     pickDate: function() {

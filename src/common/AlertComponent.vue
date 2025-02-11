@@ -2,8 +2,8 @@
   <div class="custom-alert">
     <div class="custom-alert-content">
       <div class="warnIcon">{{ icon == 'warn' ? '⚠️' : '✔️' }}</div>
-      <div id="alertMessage">{{ message }}</div>
-      <div class="close" @click="closeAlert">&times;</div>
+      <div id="alertMessage"  v-html="message"></div>
+      <!-- <div class="close" v-if="icon != 'success'" @click="closeAlert">&times;</div> -->
     </div>
   </div>
 </template>
@@ -21,6 +21,11 @@ export default {
     return {
       
     };
+  },
+  mounted() {
+    setTimeout(() => {
+      this.closeAlert();
+    }, 1500);
   },
   methods: {
     closeAlert() {
@@ -76,6 +81,7 @@ export default {
 
 #alertMessage {
   flex: 1;
+  padding: 0px 25px 0px 25px; /* 상 우 하 왼 */
   color: #000000;
 }
 
