@@ -31,8 +31,8 @@
                 <div class="col-lg-6 col-md-6 text-center">
                   <div class="mt-5">
                     <div class="mb-4" style="margin-top: 3.5rem;"><img class="img-sm" src="../assets/img/icon/icon-upload.png" alt="..." /></div>
-                    <h3 class="h4 mb-2">경로 지정</h3>
-                    <p class="text-muted mb-0">추출한 엑셀을 저장할 경로를 지정해 주세요.</p>
+                    <h3 class="h4 mb-2">자동 저장</h3>
+                    <p class="text-muted mb-0">생성한 엑셀은 자동으로 저장됩니다.</p>
                   </div>
                 </div>
                 <div class="col-lg-6 col-md-6 text-center">

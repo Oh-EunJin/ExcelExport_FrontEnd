@@ -121,6 +121,7 @@
     </div>
 
     <AlertComponent v-if="isOpenAlert" :message="message" :isOpenAlert="isOpenAlert" :icon="iconState" />
+    <LoadingComponent :isLoading="loadingStatus" />
 </section>
 </template>
 
@@ -242,7 +243,6 @@ export default {
     // 엑셀 다운로드
     downExcel() {
       if(this.checkValidation()) {
-        console.log(this.sendData)
         this.isDownBtnDisabled = true;
 
         this.$axios.get("/api/excel",{ params: this.sendData, responseType: 'blob' }).then(async (res) => {
@@ -263,14 +263,12 @@ export default {
             this.openAlert('다운로드 성공', 'success');
           } else {
             const errorMessage = await res.data.text();
-            console.log(res.data)
-            console.log(errorMessage)
             this.openAlert(errorMessage, "warn");
           }
-        }).catch((err) => {
-          console.log(err)
+        }).catch(() => {
           this.openAlert("다운로드 중 오류 발생", 'warn');
         }).finally(() => {
+          this.$store.commit('loadingComponent', false);
           this.isDownBtnDisabled = false;
         });
       }
@@ -298,7 +296,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(["isOpenAlert", "message", "iconState"]),
+    ...mapState(["isOpenAlert", "message", "iconState", "loadingStatus"]),
 
     /**
     * input 에서 datepicker로 수정하여 해당 부분 주석 처리

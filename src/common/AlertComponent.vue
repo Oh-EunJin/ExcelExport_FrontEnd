@@ -3,7 +3,7 @@
     <div class="custom-alert-content">
       <div class="warnIcon">{{ icon == 'warn' ? '⚠️' : '✔️' }}</div>
       <div id="alertMessage"  v-html="message"></div>
-      <!-- <div class="close" v-if="icon != 'success'" @click="closeAlert">&times;</div> -->
+      <div class="close" v-if="icon != 'success'" @click="closeAlert">&times;</div>
     </div>
   </div>
 </template>
@@ -23,9 +23,11 @@ export default {
     };
   },
   mounted() {
-    setTimeout(() => {
-      this.closeAlert();
-    }, 1500);
+    if(this.icon == 'success') {
+      setTimeout(() => {
+        this.closeAlert();
+      }, 2000);
+    }
   },
   methods: {
     closeAlert() {
@@ -55,7 +57,7 @@ export default {
   padding-bottom: 30px;
   border: 1px solid #888;
   width: 70%;
-  max-width: 300px;
+  max-width: 350px;
   border-radius: 8px;
   /* position: relative; */
   /* position: absolute;
@@ -83,6 +85,7 @@ export default {
   flex: 1;
   padding: 0px 25px 0px 25px; /* 상 우 하 왼 */
   color: #000000;
+  text-align: center;
 }
 
 .close {

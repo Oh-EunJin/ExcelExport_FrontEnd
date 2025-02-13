@@ -20,11 +20,8 @@ export default createStore({
             state.iconState = '';
         },
 
-        openLoadingComponent(state) {
-            state.loadingStatus = true;
-        },
-        closeLoadingComponent(state) {
-            state.loadingStatus = false;
+        loadingComponent(state, loadingStatus) {
+            state.loadingStatus = loadingStatus;
         },
     },
     actions: {
@@ -35,11 +32,8 @@ export default createStore({
             commit("closeAlertComponent");
         },
 
-        openLoadingComponent({ commit }) {
-            commit("openLoadingComponent");
-        },
-        closeLoadingComponent({ commit }) {
-            commit("closeLoadingComponent");
+        loadingComponent({ commit }, loadingStatus) {
+            commit("loadingComponent", loadingStatus);
         },
     }
 });
