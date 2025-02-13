@@ -263,10 +263,10 @@ export default {
             this.openAlert('다운로드 성공', 'success');
           } else {
             const errorMessage = await res.data.text();
-            this.openAlert(errorMessage, "warn");
+            this.openAlert(errorMessage, 'fail');
           }
         }).catch(() => {
-          this.openAlert("다운로드 중 오류 발생", 'warn');
+          this.openAlert("다운로드 중 오류 발생", 'fail');
         }).finally(() => {
           this.$store.commit('loadingComponent', false);
           this.isDownBtnDisabled = false;

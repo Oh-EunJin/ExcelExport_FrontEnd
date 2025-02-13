@@ -1,7 +1,7 @@
 <template>
   <div class="custom-alert">
     <div class="custom-alert-content">
-      <div class="warnIcon">{{ icon == 'warn' ? '⚠️' : '✔️' }}</div>
+      <div class="warnIcon">{{ icon == 'warn' ? '⚠️' : icon == 'success' ? '✔️' : '❗' }}</div>
       <div id="alertMessage"  v-html="message"></div>
       <div class="close" v-if="icon != 'success'" @click="closeAlert">&times;</div>
     </div>
