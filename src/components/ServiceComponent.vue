@@ -38,7 +38,7 @@
             <label for="extEtc"> 기타 <input type="text" v-model="etcList" ref="etcListCursor" /></label>
           </div>
           <div class="mt-2">
-            <p>* 기타 선택 시 검색하고자 하는 확장자를 입력해 주시고, 여러 개인 경우 아래 예시처럼 구분자(/)를 포함하여 입력해 주세요. <br />
+            <p>* 기타 선택 시 검색하고자 하는 확장자를 입력해 주시고, 여러 개인 경우 아래 예시처럼 <span class="separator">구분자(/)</span>를 포함하여 입력해 주세요. <br />
                 ex) css/xml/html</p>
           </div>
         </div>
@@ -364,6 +364,11 @@ input[type="checkbox"]:checked::after {
 }
 input[type="checkbox"]:disabled, input[type="checkbox"]:disabled + label {
   cursor: default;
+}
+
+.separator {
+  font-weight: bold;
+  background-color: #fff200;
 }
 
 </style>
